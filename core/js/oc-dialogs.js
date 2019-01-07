@@ -213,9 +213,7 @@ var OCdialogs = {
 		this.filepicker.loading = true;
 		this.filepicker.filesClient = (OCA.Sharing && OCA.Sharing.PublicApp && OCA.Sharing.PublicApp.fileList)? OCA.Sharing.PublicApp.fileList.filesClient: OC.Files.getClient();
 
-		if (path == undefined) {
-			path = '';
-		}
+		path = path || '';
 
 		$.when(this._getFilePickerTemplate()).then(function($tmpl) {
 			self.filepicker.loading = false;
