@@ -28,6 +28,7 @@ namespace OC\Settings\Controller;
 
 use OC\Authentication\TwoFactorAuth\EnforcementState;
 use OC\Authentication\TwoFactorAuth\MandatoryTwoFactor;
+use OC\Authentication\TwoFactorAuth\Manager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
@@ -37,12 +38,17 @@ class TwoFactorSettingsController extends Controller {
 	/** @var MandatoryTwoFactor */
 	private $mandatoryTwoFactor;
 
+	/** @var Manager */
+	private $manager;
+
 	public function __construct(string $appName,
 								IRequest $request,
-								MandatoryTwoFactor $mandatoryTwoFactor) {
+								MandatoryTwoFactor $mandatoryTwoFactor,
+								Manager $manager) {
 		parent::__construct($appName, $request);
 
 		$this->mandatoryTwoFactor = $mandatoryTwoFactor;
+		$this->manager = $manager;
 	}
 
 	public function index(): JSONResponse {
@@ -56,5 +62,8 @@ class TwoFactorSettingsController extends Controller {
 
 		return new JSONResponse($this->mandatoryTwoFactor->getState());
 	}
+
+	public function getEnabledProvidersForUser(IUser $user): JSONResponse {
+		return JSONResponse($this->manager->getProviderSet($user)->getPrimaryProviders());
 
 }
