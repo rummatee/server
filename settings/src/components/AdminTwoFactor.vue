@@ -89,7 +89,7 @@
 		computed: {
 			enforced: {
 				get: function () {
-					return this.$store.state.enforced
+					return this.$store.state.security.enforced
 				},
 				set: function (val) {
 					this.dirty = true
@@ -98,7 +98,7 @@
 			},
 			enforcedGroups: {
 				get: function () {
-					return this.$store.state.enforcedGroups
+					return this.$store.state.security.enforcedGroups
 				},
 				set: function (val) {
 					this.dirty = true
@@ -107,7 +107,7 @@
 			},
 			excludedGroups: {
 				get: function () {
-					return this.$store.state.excludedGroups
+					return this.$store.state.security.excludedGroups
 				},
 				set: function (val) {
 					this.dirty = true

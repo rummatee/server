@@ -24,7 +24,13 @@ import Vuex from 'vuex'
 
 Vue.use(Vuex)
 
-export const mutations = {
+const state = {
+	enforced: false,
+	enforcedGroups: [],
+	excludedGroups: [],
+};
+
+const mutations = {
 	setEnforced(state, enabled) {
 		Vue.set(state, 'enforced', enabled)
 	},
@@ -36,7 +42,7 @@ export const mutations = {
 	}
 }
 
-export const actions = {
+const actions = {
 	save ({commit}, ) {
 		commit('setEnabled', false);
 
@@ -51,13 +57,9 @@ export const actions = {
 	}
 }
 
-export default new Vuex.Store({
+export default {
 	strict: process.env.NODE_ENV !== 'production',
-	state: {
-		enforced: false,
-		enforcedGroups: [],
-		excludedGroups: [],
-	},
+	state,
 	mutations,
 	actions
-})
+}
