@@ -171,6 +171,12 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
 
 
 
@@ -179,6 +185,10 @@ __webpack_require__.r(__webpack_exports__);
   name: "AdminTwoFactor",
   components: {
     Multiselect: nextcloud_vue__WEBPACK_IMPORTED_MODULE_2__["Multiselect"]
+  },
+  beforeMount: function beforeMount() {
+    this.$store.dispatch('getAllApps');
+    this.$store.dispatch('getEnabledProvidersCurrentUser');
   },
   data: function data() {
     return {
@@ -214,6 +224,20 @@ __webpack_require__.r(__webpack_exports__);
       set: function set(val) {
         this.dirty = true;
         this.$store.commit('setExcludedGroups', val);
+      }
+    },
+    noProviderGlobally: {
+      get: function get() {
+        var providers = this.$store.getters.getAllApps.filter(function (app) {
+          return 'two-factor-providers' in app && 'provider' in app['two-factor-providers'] && app['active'] === true;
+        });
+        return providers.length === 0;
+      }
+    },
+    noProviderAdmin: {
+      get: function get() {
+        var providers = this.$store.getters.getEnabledProvidersCurrentUser;
+        return providers.length === 0;
       }
     }
   },
@@ -20487,6 +20511,36 @@ var render = function() {
       _vm._v(" "),
       _vm.enforced
         ? [
+            _vm.noProviderGlobally
+              ? _c("p", { attrs: { id: "two-factor-warning-global" } }, [
+                  _vm._v(
+                    "\n\t\t\t" +
+                      _vm._s(
+                        _vm.t(
+                          "settings",
+                          "No Two-Factor authentication provider enabled on this server. Are you sure that you want to enforce Two-Factor authentication?"
+                        )
+                      ) +
+                      "\n\t\t"
+                  )
+                ])
+              : _vm._e(),
+            _vm._v(" "),
+            _vm.noProviderAdmin
+              ? _c("p", { attrs: { id: "two-factor-warning-admin" } }, [
+                  _vm._v(
+                    "\n\t\t\t" +
+                      _vm._s(
+                        _vm.t(
+                          "settings",
+                          "No Two-Factor authentication provider enabled for your account. Are you sure that you want to enforce Two-Factor authentication?"
+                        )
+                      ) +
+                      "\n\t\t"
+                  )
+                ])
+              : _vm._e(),
+            _vm._v(" "),
             _c("h3", [_vm._v(_vm._s(_vm.t("settings", "Limit to groups")))]),
             _vm._v(
               "\n\t\t" +
@@ -29881,6 +29935,7 @@ new View({
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue */ "./settings/node_modules/vue/dist/vue.runtime.esm.js");
 /* harmony import */ var vuex__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vuex */ "./settings/node_modules/vuex/dist/vuex.esm.js");
+/* harmony import */ var _api__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./api */ "./settings/src/store/api.js");
 /*
  * @copyright 2019 Roeland Jago Douma <roeland@famdouma.nl>
  *
@@ -29903,11 +29958,13 @@ __webpack_require__.r(__webpack_exports__);
  */
 
 
+
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(vuex__WEBPACK_IMPORTED_MODULE_1__["default"]);
 var state = {
   enforced: false,
   enforcedGroups: [],
-  excludedGroups: []
+  excludedGroups: [],
+  enabledProvidersCurrentUser: []
 };
 var mutations = {
   setEnforced: function setEnforced(state, enabled) {
@@ -29918,6 +29975,14 @@ var mutations = {
   },
   setExcludedGroups: function setExcludedGroups(state, used) {
     vue__WEBPACK_IMPORTED_MODULE_0__["default"].set(state, 'excludedGroups', used);
+  },
+  setEnabledProvidersCurrentUser: function setEnabledProvidersCurrentUser(state, providers) {
+    vue__WEBPACK_IMPORTED_MODULE_0__["default"].set(state, 'enabledProvidersCurrentUser', providers);
+  }
+};
+var getters = {
+  getEnabledProvidersCurrentUser: function getEnabledProvidersCurrentUser(state) {
+    return state.enabledProvidersCurrentUser;
   }
 };
 var actions = {
@@ -29933,12 +29998,24 @@ var actions = {
       commit('setCodes', codes);
       return true;
     });
+  },
+  getEnabledProvidersCurrentUser: function getEnabledProvidersCurrentUser(context) {
+    context.commit('startLoading', 'providers');
+    var user = OC.getCurrentUser().uid;
+    return _api__WEBPACK_IMPORTED_MODULE_2__["default"].get(OC.generateUrl("/settings/api/users/".concat(user, "/twoFactorProviders"))).then(function (response) {
+      context.commit('setEnabledProvidersCurrentUser', response.data);
+      context.commit('stopLoading', 'providers');
+      return true;
+    }).catch(function (error) {
+      return context.commit('API_FAILURE', error);
+    });
   }
 };
 /* harmony default export */ __webpack_exports__["default"] = ({
   strict: "development" !== 'production',
   state: state,
   mutations: mutations,
+  getters: getters,
   actions: actions
 });
 

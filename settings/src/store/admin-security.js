@@ -21,6 +21,7 @@
 
 import Vue from 'vue'
 import Vuex from 'vuex'
+import api from './api';
 
 Vue.use(Vuex)
 
@@ -28,6 +29,7 @@ const state = {
 	enforced: false,
 	enforcedGroups: [],
 	excludedGroups: [],
+	enabledProvidersCurrentUser: [],
 };
 
 const mutations = {
@@ -39,6 +41,15 @@ const mutations = {
 	},
 	setExcludedGroups(state, used) {
 		Vue.set(state, 'excludedGroups', used)
+	},
+	setEnabledProvidersCurrentUser(state, providers) {
+		Vue.set(state, 'enabledProvidersCurrentUser', providers)
+	}
+}
+
+const getters = {
+	getEnabledProvidersCurrentUser(state) {
+		return state.enabledProvidersCurrentUser;
 	}
 }
 
@@ -49,17 +60,29 @@ const actions = {
 		return generateCodes()
 			.then(({codes, state})  => {
 			commit('setEnabled', state.enabled);
-		commit('setTotal', state.total);
-		commit('setUsed', state.used);
-		commit('setCodes', codes);
-		return true;
-	});
-	}
+			commit('setTotal', state.total);
+			commit('setUsed', state.used);
+			commit('setCodes', codes);
+			return true;
+		});
+	},
+	getEnabledProvidersCurrentUser(context) {
+		context.commit('startLoading', 'providers');
+		var user = OC.getCurrentUser().uid;
+		return api.get(OC.generateUrl(`/settings/api/users/${user}/twoFactorProviders`))
+			.then((response) => {
+				context.commit('setEnabledProvidersCurrentUser', response.data);
+				context.commit('stopLoading', 'providers');
+				return true;
+			})
+			.catch((error) => context.commit('API_FAILURE', error));
+	},
 }
 
 export default {
 	strict: process.env.NODE_ENV !== 'production',
 	state,
 	mutations,
+	getters,
 	actions
 }
